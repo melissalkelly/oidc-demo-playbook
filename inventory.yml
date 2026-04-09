@@ -1,0 +1,8 @@
+---
+all:
+  hosts:
+    ssh_target:
+      ansible_host: ssh-target.demo-ssh.svc.cluster.local
+      ansible_port: 22
+      ansible_connection: ssh
+      # ansible_user and ansible_password will be injected from the credential

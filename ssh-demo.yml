@@ -1,0 +1,54 @@
+---
+- name: OIDC Workload Identity Demo - SSH with Vault Credentials
+  hosts: ssh_target
+  gather_facts: false
+
+  tasks:
+    - name: Display connection information
+      debug:
+        msg: |
+          Connecting to {{ inventory_hostname }}
+          Using credentials fetched from HashiCorp Vault via OIDC
+          This demonstrates zero-trust authentication with no static credentials!
+
+    - name: Test SSH connection by reading welcome file
+      ansible.builtin.slurp:
+        src: /home/{{ ansible_user }}/welcome.txt
+      register: welcome_content
+
+    - name: Display welcome message
+      debug:
+        msg: "{{ welcome_content.content | b64decode }}"
+
+    - name: Run a command to prove we're logged in
+      ansible.builtin.command: whoami
+      register: whoami_result
+      changed_when: false
+
+    - name: Display current user
+      debug:
+        msg: "Currently logged in as: {{ whoami_result.stdout }}"
+
+    - name: Create a timestamped file to prove the job ran
+      ansible.builtin.copy:
+        content: |
+          Job executed at: {{ ansible_date_time.iso8601 }}
+          Authenticated via OIDC Workload Identity
+          No static credentials were stored in AAP!
+        dest: /home/{{ ansible_user }}/last-job-run.txt
+
+    - name: Success message
+      debug:
+        msg: |
+          ========================================
+          ✓ Demo Complete!
+          ========================================
+          Successfully authenticated to SSH target using credentials
+          fetched from HashiCorp Vault via OIDC JWT authentication.
+
+          Key Points:
+          - AAP issued a short-lived JWT with workload claims
+          - Vault validated the JWT and checked policies
+          - Credentials were fetched and injected into the job
+          - Job executed successfully with no static credentials
+          ========================================
