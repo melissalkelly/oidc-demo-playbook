@@ -1,21 +1,33 @@
 ---
-- name: OIDC Workload Identity Demo - SSH with Vault Credentials
+- name: Deploy production configuration using OIDC workload identity
   hosts: ssh_target
   gather_facts: false
 
   tasks:
-    - name: Display connection information
-      ansible.builtin.raw: echo "Successfully connected to {{ inventory_hostname }} using OIDC credentials from Vault!"
-      register: connection_test
+    - name: Create production directory if it doesn't exist
+      ansible.builtin.raw: mkdir -p /home/demo-user/production
       changed_when: false
 
-    - name: Read welcome file using raw command
-      ansible.builtin.raw: cat /home/demo-user/welcome.txt
-      register: welcome_content
-      changed_when: false
+    - name: Deploy application configuration to production
+      ansible.builtin.raw: |
+        cat > /home/demo-user/production/app-config.yml << 'EOF'
+        # Application Configuration
+        environment: production
+        database:
+          host: db.example.com
+          port: 5432
+        api:
+          endpoint: https://api.example.com
+          timeout: 30
+        version: 2.1.0
+        deployed_at: $(date -Iseconds)
+        deployed_by: OIDC Workload Identity
+        EOF
+      changed_when: true
 
-    - name: Display welcome message
-      ansible.builtin.raw: echo "{{ welcome_content.stdout }}"
+    - name: Verify deployment
+      ansible.builtin.raw: cat /home/demo-user/production/app-config.yml
+      register: deployed_config
       changed_when: false
 
     - name: Show current user
@@ -23,13 +35,12 @@
       register: current_user
       changed_when: false
 
-    - name: Display final success message
+    - name: Display success message
       ansible.builtin.raw: |
         echo "================================================"
-        echo "OIDC Workload Identity Demo - SUCCESS!"
-        echo "================================================"
-        echo "Authenticated as: {{ current_user.stdout }}"
-        echo "Using credentials fetched from HashiCorp Vault"
-        echo "Zero static credentials - pure workload identity!"
+        echo "✓ Configuration deployed to production server"
+        echo "✓ Authenticated as: {{ current_user.stdout }}"
+        echo "✓ Credentials fetched from Vault via OIDC"
+        echo "✓ No static credentials required"
         echo "================================================"
       changed_when: false
