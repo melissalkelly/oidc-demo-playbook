@@ -10,7 +10,7 @@
 
     - name: Deploy application configuration to production
       ansible.builtin.raw: |
-        cat > /home/demo-user/production/app-config.yml << 'EOF'
+        cat > /home/demo-user/production/app-config.yml << EOF
         # Application Configuration
         environment: production
         database:
