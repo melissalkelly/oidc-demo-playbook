@@ -30,17 +30,28 @@
       register: deployed_config
       changed_when: false
 
+    - name: Display deployed configuration
+      ansible.builtin.raw: |
+        echo "================================================"
+        echo "Deployed configuration file:"
+        echo "================================================"
+        cat /home/demo-user/production/app-config.yml
+        echo ""
+        echo "================================================"
+      changed_when: false
+
     - name: Show current user
       ansible.builtin.raw: whoami
       register: current_user
       changed_when: false
 
-    - name: Display success message
+    - name: Display deployment summary
       ansible.builtin.raw: |
         echo "================================================"
-        echo "✓ Configuration deployed to production server"
-        echo "✓ Authenticated as: {{ current_user.stdout }}"
-        echo "✓ Credentials fetched from Vault via OIDC"
-        echo "✓ No static credentials required"
+        echo "Deployment Summary"
+        echo "================================================"
+        echo "Status: Configuration deployed successfully"
+        echo "User: {{ current_user.stdout }}"
+        echo "Authentication: Vault (OIDC)"
         echo "================================================"
       changed_when: false
